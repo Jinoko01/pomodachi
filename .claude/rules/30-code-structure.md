@@ -20,16 +20,23 @@ paths:
 
 ## 파일 구조
 
-- 현재 봇은 `src/index.ts` 한 파일에서 클라이언트 생성, 커맨드 정의·등록, 인터랙션 처리, 타이머 로직을 모두 담당한다. 빌드 결과는 `dist/index.js`다.
+- `src/`는 역할별로 나뉜다. 빌드 진입점은 `dist/index.js`다.
+  - `index.ts`: 진입점. 환경 변수 검사, 클라이언트 생성, 커맨드 등록, 이벤트 연결, 인터랙션 예외 처리
+  - `commands.ts`: 슬래시 커맨드 정의(`commands`)
+  - `interactions.ts`: 인터랙션 분기(`handleInteraction`)와 서브커맨드별 핸들러, 자동완성, 도움말 문구
+  - `timer.ts`: `TimerData`, `activeTimers`, 타이머 시작(`startTimer`)·정리(`stopTimer`), 음성 연결 감시
+  - `audio.ts`: 오디오 폴더 경로, 파일 목록·검증, `AudioSettings`, `userAudioSettings`
+- 의존 방향은 `index → commands, interactions`, `interactions → timer, audio`, `timer → audio`로 유지한다. 반대 방향 import를 추가하지 않는다.
 - `src/` 파일은 `dist/`에 같은 깊이로 빌드되며, 오디오 폴더는 `import.meta.dirname` 한 단계 위(프로젝트 루트)를 기준으로 찾는다. 파일 위치를 바꾸면 이 경로 계산도 함께 확인한다.
 - 기능 추가를 위해 파일을 나누거나 `src/commands/` 같은 새 디렉토리 구조를 도입하려면 먼저 확인을 요청한다.
 - 파일을 나눌 때는 순환 참조를 만들지 않고, 기존 동작과 사용자에게 보이는 응답을 바꾸지 않는다.
 
 ## 상태 관리
 
-- 진행 중인 타이머는 `activeTimers`, 사용자 오디오 설정은 `userAudioSettings` Map에 사용자 ID를 키로 저장한다. 같은 데이터를 다른 곳에 중복 저장하지 않는다.
+- 진행 중인 타이머는 `activeTimers`(`timer.ts`), 사용자 오디오 설정은 `userAudioSettings`(`audio.ts`) Map에 사용자 ID를 키로 저장한다. 같은 데이터를 다른 곳에 중복 저장하지 않는다.
+- 사용자 오디오 설정은 `getAudioSettings`로 읽어 기본값 적용을 한 곳에서 처리한다.
 - 두 Map은 메모리에만 존재해 봇을 재시작하면 초기화된다. 파일·DB 등 영속 저장소 도입은 명세에 없으면 추가하지 않는다. 영속 저장소는 통계 기능 작업에서 함께 설계하기로 했다.
-- 사용자 설정 기본값(`{ bgmName: null, notifyName: '기본알림음.mp3' }`)처럼 여러 곳에서 반복되는 값을 바꿀 때는 모든 사용처를 함께 수정한다.
+- 사용자 설정 기본값(`{ bgmName: null, notifyName: '기본알림음.mp3' }`)은 `getAudioSettings`에만 둔다. 여러 곳에서 반복되는 값을 바꿀 때는 모든 사용처를 함께 수정한다.
 - 기존 값에서 계산할 수 있는 값은 별도 상태로 저장하지 않는다.
 
 ## 함수와 분기

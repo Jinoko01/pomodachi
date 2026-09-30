@@ -4,7 +4,7 @@
 - 런타임은 Node.js(20.11 이상)이고 코드는 TypeScript(ESM, `strict`)로 작성한다. `tsc`로 `src/`를 `dist/`에 빌드하고, 개발 중에는 `tsx`로 직접 실행한다.
 - 주요 라이브러리는 discord.js v14, @discordjs/voice, dotenv이다. `ffmpeg-static`, `libsodium-wrappers`, `@snazzah/davey`는 음성 인코딩·암호화에 필요한 런타임 의존성이다.
 - 패키지 매니저는 `pnpm`만 사용한다(`packageManager` 필드로 버전 고정). 설치 스크립트 허용 목록은 `pnpm-workspace.yaml`의 `allowBuilds`에서 관리한다.
-- 진입점은 `src/index.ts`이며 클라이언트 생성, 슬래시 커맨드 정의·등록, 인터랙션 처리, 타이머 로직을 모두 담고 있다.
+- 진입점은 `src/index.ts`이며, 커맨드 정의(`commands.ts`), 인터랙션 처리(`interactions.ts`), 타이머(`timer.ts`), 오디오 파일·설정(`audio.ts`)은 `src/`에 역할별로 나뉘어 있다. 파일별 책임은 `.agents/rules/30-code-structure.md`에 있다.
 - 주요 스크립트: `pnpm dev`(tsx watch 실행), `pnpm build`(tsc 빌드), `pnpm start`(`dist/index.js` 실행), `pnpm typecheck`(타입 검사).
 - 오디오 파일은 배경음 `background-sound/`, 알림음 `notify-sound/`에 `.mp3`로 둔다.
 - 봇 토큰은 `.env`의 `DISCORD_TOKEN`으로 주입한다.
@@ -25,7 +25,7 @@
 - 요청 범위와 관련 없는 리팩터링, 파일 분리·이동, 이름 변경, 포맷 변경을 함께 수행하지 않는다.
 - 전체 구현을 요청받으면 기능 단위로 구현하고 검증하되 중간 승인을 기다리지 않고 요청된 범위까지 완료한다. 사용자가 단계별 검토를 요청한 경우에만 각 단계에서 확인을 기다린다.
 - 다음 작업 전에는 확인을 요청한다.
-  - 파일 삭제, 대규모 파일 이동, `src/index.ts` 분리 등 구조 변경
+  - 파일 삭제, 대규모 파일 이동, `src/` 파일 추가·분리·통합 등 구조 변경
   - 기존 커맨드·서브커맨드·옵션 이름 변경 또는 제거
   - 게이트웨이 인텐트, 봇 권한, 커맨드 등록 방식 변경
   - `tsconfig.json` 컴파일 옵션, `pnpm-workspace.yaml`의 `allowBuilds` 변경
