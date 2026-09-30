@@ -19,9 +19,9 @@
 | 명령어 | 설명 | 옵션 / 사용 예시 |
 |--------|------|-------------------|
 | `/뽀모도로 시작` | 뽀모도로 타이머를 시작합니다. | `[집중시간]` (기본 25분), `[휴식시간]` (기본 5분) <br> 예: `/뽀모도로 시작 집중시간: 50 휴식시간: 10` |
-| `/뽀모도로 배경음` | 집중 시간에 재생할 배경음을 설정합니다. | `[파일명]` (background-sound 폴더 내 파일). <br>무음 설정 시 `없음` 기입 |
+| `/뽀모도로 배경음` | 집중 시간에 재생할 배경음을 설정합니다. | `[파일명]` (background-sound 폴더 내 파일). <br>무음 설정 시 `없음` 또는 `무음` 기입 |
 | `/뽀모도로 알림음` | 타이머 전환 시 재생할 알림음을 설정합니다. | `[파일명]` (notify-sound 폴더 내 파일) <br>기본값: `기본알림음.mp3` |
-| `/뽀모도로 오디오 목록` | 봇에서 사용 가능한 음악 및 알림음 파일 목록을 조회합니다. | - |
+| `/뽀모도로 목록` | 봇에서 사용 가능한 음악 및 알림음 파일 목록을 조회합니다. | - |
 | `/뽀모도로 중지` | 진행 중인 타이머를 즉시 중지하고 봇을 내보냅니다. | - |
 | `/뽀모도로 도움말` | 봇의 사용 방법 안내문을 채팅창에 출력합니다. | - |
 
@@ -30,25 +30,53 @@
 ---
 
 ## 3. 기술 스택
-- **Runtime**: [Node.js](https://nodejs.org/)
+- **Runtime**: [Node.js](https://nodejs.org/) 20.11 이상
+- **Language**: [TypeScript](https://www.typescriptlang.org/) (ESM, `tsc` 빌드 / `tsx` 개발 실행)
+- **Package Manager**: [pnpm](https://pnpm.io/)
 - **Library**: [Discord.js (v14)](https://discord.js.org/)
-- **Voice System**: `@discordjs/voice`, `libsodium-wrappers`, `ffmpeg-static`
+- **Voice System**: `@discordjs/voice`, `libsodium-wrappers`, `@snazzah/davey`, `ffmpeg-static`
 - **Configuration**: `dotenv` (환경 변수 및 토큰 관리)
 
 ---
 
-## 4. 프로젝트 구조
+## 4. 실행 방법
+1. 의존성을 설치합니다. `ffmpeg-static`의 설치 스크립트가 ffmpeg 바이너리를 함께 내려받습니다.
+   ```bash
+   pnpm install
+   ```
+2. 프로젝트 루트에 `.env` 파일을 만들고 봇 토큰을 입력합니다.
+   ```text
+   DISCORD_TOKEN=발급받은_봇_토큰
+   ```
+3. 봇을 실행합니다.
+
+| 명령어 | 설명 |
+|--------|------|
+| `pnpm dev` | 개발용 실행. 소스 파일이 바뀌면 자동으로 다시 시작합니다. |
+| `pnpm build` | `src/`를 `dist/`로 빌드합니다. |
+| `pnpm start` | 빌드된 `dist/index.js`를 실행합니다. (`pnpm build` 후 사용) |
+| `pnpm typecheck` | 빌드 없이 타입 검사만 수행합니다. |
+
+---
+
+## 5. 프로젝트 구조
 ```text
 pomodoro-bot/
-├── index.js               # 봇의 메인 실행 파일 (슬래시 커맨드 동적 등록 및 이벤트 처리)
+├── src/
+│   └── index.ts           # 봇의 메인 소스 파일 (슬래시 커맨드 동적 등록 및 이벤트 처리)
+├── dist/                  # 빌드 결과물 (pnpm build로 생성, Git 추적 제외)
 ├── .env                   # 디스코드 봇 토큰 등 환경 변수 파일 (코드에 포함되지 않음)
 ├── .gitignore             # Git 추적 예외 목록
-├── package.json           # 프로젝트 설정 및 종속성 관리 파일
-├── package-lock.json      # 정확한 의존성 버전 잠금 파일
+├── package.json           # 프로젝트 설정, 스크립트 및 종속성 관리 파일
+├── pnpm-lock.yaml         # 정확한 의존성 버전 잠금 파일
+├── pnpm-workspace.yaml    # pnpm 설정 (설치 스크립트 허용 목록)
+├── tsconfig.json          # TypeScript 컴파일 설정
 ├── background-sound/      # 집중 시간 동안 반복 재생할 BGM 파일 보관용 폴더
-│   └── bgm.mp3            # (예시 파일)
+│   ├── Moonlight_ 월광_국악.mp3
+│   └── 녹턴 작품번호 9-2_국악.mp3
 └── notify-sound/          # 집중/휴식 시간이 끝날 때 단발성으로 울릴 알림음 파일 보관용 폴더
-    └── 기본알림음.mp3       # 기본 설정 알림음 파일
+    ├── 기본알림음.mp3       # 기본 설정 알림음 파일
+    └── 자명종소리.mp3
 ```
 
 ### 오디오 추가 방법
@@ -56,4 +84,4 @@ pomodoro-bot/
 - 🎵 배경 음악 추가 $\rightarrow$ `background-sound/` 폴더 내 
 - 🔔 짧은 알람 추가 $\rightarrow$ `notify-sound/` 폴더 내
 
-이후 디스코드에서 `/뽀모도로 오디오 목록` 명령어를 실행하면 봇이 즉시 새로운 파일을 인식하여 목록에 표시해 줍니다.
+이후 디스코드에서 `/뽀모도로 목록` 명령어를 실행하면 봇이 즉시 새로운 파일을 인식하여 목록에 표시해 줍니다.
