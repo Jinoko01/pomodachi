@@ -1,6 +1,6 @@
 import type { AutocompleteInteraction, ChatInputCommandInteraction, Interaction } from 'discord.js';
 import fs from 'node:fs';
-import { BGM_DIR, NOTIFY_DIR, userAudioSettings, getAudioSettings, listAudioFiles, isAvailableAudioFile } from './audio.js';
+import { BGM_DIR, NOTIFY_DIR, userAudioSettings, getAudioSettings, saveAudioSettings, listAudioFiles, isAvailableAudioFile } from './audio.js';
 import { activeTimers, findGuildTimer, startTimer, stopTimer } from './timer.js';
 
 const HELP_MESSAGE = `🍅 **뽀모도로 봇 사용법 안내** 🍅
@@ -20,6 +20,8 @@ const HELP_MESSAGE = `🍅 **뽀모도로 봇 사용법 안내** 🍅
 
 🔹 \`/뽀모도로 중지\`
 진행 중인 타이머를 즉시 중지하고 봇을 내보냅니다.`;
+
+const SAVE_FAILED_NOTICE = '\n⚠️ 설정을 파일에 저장하지 못해 봇을 재시작하면 초기화됩니다.';
 
 export async function handleInteraction(interaction: Interaction): Promise<unknown> {
     if (interaction.isAutocomplete()) {
@@ -107,9 +109,10 @@ function handleBgm(interaction: ChatInputCommandInteraction): Promise<unknown> {
     const userSettings = getAudioSettings(interaction.user.id);
     userSettings.bgmName = bgmName;
     userAudioSettings.set(interaction.user.id, userSettings);
+    const saved = saveAudioSettings();
 
     return interaction.reply({
-        content: `🎵 배경음이 **${bgmName ? bgmName : '없음(무음)'}**(으)로 설정되었습니다!`,
+        content: `🎵 배경음이 **${bgmName ? bgmName : '없음(무음)'}**(으)로 설정되었습니다!${saved ? '' : SAVE_FAILED_NOTICE}`,
         allowedMentions: { parse: [] }
     });
 }
@@ -130,9 +133,10 @@ function handleNotify(interaction: ChatInputCommandInteraction): Promise<unknown
     const userSettings = getAudioSettings(interaction.user.id);
     userSettings.notifyName = notifyName;
     userAudioSettings.set(interaction.user.id, userSettings);
+    const saved = saveAudioSettings();
 
     return interaction.reply({
-        content: `🔔 알림음이 **${notifyName}**(으)로 설정되었습니다!`,
+        content: `🔔 알림음이 **${notifyName}**(으)로 설정되었습니다!${saved ? '' : SAVE_FAILED_NOTICE}`,
         allowedMentions: { parse: [] }
     });
 }
