@@ -25,7 +25,7 @@ paths:
   - `commands.ts`: 슬래시 커맨드 정의(`commands`)
   - `interactions.ts`: 인터랙션 분기(`handleInteraction`)와 서브커맨드별 핸들러, 자동완성, 도움말 문구
   - `timer.ts`: `TimerData`, `activeTimers`, 타이머 시작(`startTimer`)·정리(`stopTimer`), 음성 연결 감시
-  - `audio.ts`: 오디오 폴더 경로, 파일 목록·검증, `AudioSettings`, `userAudioSettings`
+  - `audio.ts`: 오디오 폴더 경로, 파일 목록·검증, `AudioSettings`, `userAudioSettings`, 설정 파일(`data/settings.json`) 불러오기·저장(`saveAudioSettings`)
 - 의존 방향은 `index → commands, interactions`, `interactions → timer, audio`, `timer → audio`로 유지한다. 반대 방향 import를 추가하지 않는다.
 - `src/` 파일은 `dist/`에 같은 깊이로 빌드되며, 오디오 폴더는 `import.meta.dirname` 한 단계 위(프로젝트 루트)를 기준으로 찾는다. 파일 위치를 바꾸면 이 경로 계산도 함께 확인한다.
 - 기능 추가를 위해 파일을 나누거나 `src/commands/` 같은 새 디렉토리 구조를 도입하려면 먼저 확인을 요청한다.
@@ -35,7 +35,7 @@ paths:
 
 - 진행 중인 타이머는 `activeTimers`(`timer.ts`), 사용자 오디오 설정은 `userAudioSettings`(`audio.ts`) Map에 사용자 ID를 키로 저장한다. 같은 데이터를 다른 곳에 중복 저장하지 않는다.
 - 사용자 오디오 설정은 `getAudioSettings`로 읽어 기본값 적용을 한 곳에서 처리한다.
-- 두 Map은 메모리에만 존재해 봇을 재시작하면 초기화된다. 파일·DB 등 영속 저장소 도입은 명세에 없으면 추가하지 않는다. 영속 저장소는 통계 기능 작업에서 함께 설계하기로 했다.
+- `activeTimers`는 메모리에만 존재해 봇을 재시작하면 초기화된다. `userAudioSettings`는 `data/settings.json`에 저장하며, 설정을 바꾸는 코드는 Map 변경 직후 `saveAudioSettings()`를 호출한다. 통계 등 다른 데이터의 영속 저장소는 명세에 없으면 추가하지 않으며, 통계 기능 작업에서 함께 설계한다.
 - 사용자 설정 기본값(`{ bgmName: null, notifyName: '기본알림음.mp3' }`)은 `getAudioSettings`에만 둔다. 여러 곳에서 반복되는 값을 바꿀 때는 모든 사용처를 함께 수정한다.
 - 기존 값에서 계산할 수 있는 값은 별도 상태로 저장하지 않는다.
 

@@ -26,7 +26,7 @@
 ## 3. 저장 파일
 
 - 경로: 프로젝트 루트의 `data/settings.json` (`ROOT_DIR` 기준, 오디오 폴더와 같은 방식).
-- `data/`가 없으면 `audio.ts` 로드 시 만든다. `data/`는 `.gitignore`에 추가한다.
+- `data/`는 저장할 때 없으면 만든다(`saveAudioSettings` 안에서 `recursive: true`). 모듈 로드 시 폴더 생성이 실패해 봇 시작이 막히지 않도록 하기 위해서다. `data/`는 `.gitignore`에 추가한다.
 - 형식:
 
 ```json
